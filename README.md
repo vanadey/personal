@@ -4,12 +4,12 @@ Short programs for Linux workstation administration and hobby stuff
 ## photo
 Photography-related stuff
 
-### file-organizer-by-exif.sh
-Rename image files according to a uniform scheme, sorted by EXIF timestamp.
-Written to sort photos captured with different cameras using different naming schemes.
-
-### dir-renamer-by-exif.py
-Rename image directories by EXIF dates. Written to organise a large repository of photos, organised in directories by event.
+> ### file-organizer-by-exif.sh
+> Rename image files according to a uniform scheme, sorted by EXIF timestamp.
+> Written to sort photos captured with different cameras using different naming schemes.
+> 
+> ### dir-renamer-by-exif.py
+> Rename image directories by EXIF dates. Written to organise a large repository of photos, organised in directories by event.
 
 ## redirect_links.sh
 Batch-redirect softlinks after moving the target directory.
