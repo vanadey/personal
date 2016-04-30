@@ -42,7 +42,7 @@ for FILE in $(ls *.JPG *.JPEG *.jpeg 2>/dev/null ); do mv "$FILE" "${FILE%\.*}.j
 
 # rename files to start with timestamp
 echo "Renaming photos to include timestamps"
-for i in *.jpg; do exiv2 -r '%Y%m%d.%H%M%S.:basename:' rename $i; done
+for i in *.jpg *.CR2; do exiv2 -r '%Y%m%d.%H%M%S.:basename:' rename $i; done
 
 # rename files to uniform counter form
 echo "Unifying photo names according to scheme ${PREFIX}nnnn.jpg"
@@ -51,6 +51,7 @@ for PHOTO in *.jpg; do
   printf -v FILENAME "${PREFIX}%0${PHOTO_CNT_LEN}d.jpg" $N
   #echo FILENAME = $FILENAME
   mv "$PHOTO" "$FILENAME"
+  [ -e ${PHOTO/jpg/CR2} ] && mv "${PHOTO/jpg/CR2}" "${FILENAME/jpg/CR2"
   (( N += 1 ))
 done
 
