@@ -51,7 +51,7 @@ for PHOTO in *.jpg; do
   printf -v FILENAME "${PREFIX}%0${PHOTO_CNT_LEN}d.jpg" $N
   #echo FILENAME = $FILENAME
   mv "$PHOTO" "$FILENAME"
-  [ -e ${PHOTO/jpg/CR2} ] && mv "${PHOTO/jpg/CR2}" "${FILENAME/jpg/CR2"
+  [ -e ${PHOTO/jpg/CR2} ] && mv "${PHOTO/jpg/CR2}" "${FILENAME}/jpg/CR2"
   (( N += 1 ))
 done
 
