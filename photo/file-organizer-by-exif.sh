@@ -7,7 +7,7 @@ usage() {
   echo "   ${0##*/} {-h|--help}"
   echo "   ${0##*/} [photo_prefix] PHOTO_DIR"
   echo
-  echo "This script will unify the names of all JPEG photos in the given directory, numbering them according to their EXIF timestamps."
+  echo "This script will unify the names of all JPEG photos in the given directory (possibly with accompanying CR2 raw images), numbering them according to their EXIF timestamps."
   echo "It was written to deal with events photographed with several devices using different file naming schemes, e.g. a DSLR and mobile phone."
   echo "Resulting photo filenames will have the scheme:"
   echo "   PHOTO_0001.jpg"
