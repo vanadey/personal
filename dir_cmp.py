@@ -8,10 +8,14 @@
 from __future__ import with_statement  # for exception-proofing file operations
 
 import argparse
-import md5, sha
+#import md5, sha
+import hashlib
 import os, os.path, sys
 import time
 import cPickle   # for saving intermediate results file as dictionary object
+
+
+BUF_SIZE = 65536  # lets read stuff in 64kb chunks!
 
 
 def parse_args() :
@@ -22,7 +26,7 @@ def parse_args() :
    parser = argparse.ArgumentParser(description=usage_text,epilog=epilog_text,formatter_class=argparse.RawDescriptionHelpFormatter)
    parser.add_argument('refdir', metavar="REFERENCE_DIRECTORY", help="directory tree that will provide hints concerning which copy in the other dir tree to keep")
    parser.add_argument('backupdir', metavar="BACKUP_DIRECTORY", help="the other dir tree...")
-   parser.add_argument("--sha1", action="store_const", const="sha1", dest="hasher", default="md5")
+   parser.add_argument("--sha1", action="store_const", const=hashlib.sha1, dest="hasher", default=hashlib.md5)
    parser.add_argument("--store-hashes", action="store", dest="hash_store", help="File to store computed file hashes in (for future duplicate identification without needing to re-analyse dir tree).")
    parser.add_argument("--load-hashes", action="store", dest="hash_load", help="File to load computed file hashes from (for duplicate identification without needing to re-analyse dir tree. Overrides REFERENCE_DIRECTORY and BACKUP_DOCUMENT with stored values.")
    parser.add_argument("--delete", action="store_true", dest="delete", help="Really delete files identified as reduntant (default: report only)")
@@ -64,8 +68,12 @@ def get_hashes(dirtree, hash_engine) :
          debug_msg("get_hashes: processing file name \'{0:s}\'\n".format(_file_fullpath))
          if os.path.isfile(_file_fullpath) :
             if os.access(_file_fullpath,os.R_OK) :
-               with open(_file_fullpath) as _input_file :
-                  _hasher = hash_engine.new(_input_file.read())
+               with open(_file_fullpath,'rb') as _input_file :
+                  _hasher = hash_engine()
+                  while True :
+                     data = _input_file.read(BUF_SIZE)
+                     if not data : break
+                     _hasher.update(data)
                   _hash = _hasher.hexdigest()
                   debug_msg("get_hashes: file \'{0:s}\' : hash = {1:s}\n".format(_file_fullpath,_hash))
                   #print "File: {0}, hash: {1}".format(_file_fullpath,_hash)
@@ -139,9 +147,10 @@ if options.hash_load :
       except :
          error("Wrong format of hashes file {0}!".format(options.hash_load),True)
 else :
-   if options.hasher == "sha1" : HASHER = sha
-   elif options.hasher == "md5" : HASHER = md5
-   else : HASHER = md5
+   #if options.hasher == "sha1" : HASHER = sha
+   #elif options.hasher == "md5" : HASHER = md5
+   #else : HASHER = md5
+   HASHER=options.hasher
 
    # validate options
    if not os.access(options.refdir,os.R_OK) :
