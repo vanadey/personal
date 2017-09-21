@@ -1,0 +1,21 @@
+#!/bin/bash
+if [[ $# == 0 || $1 == '-h' || $1 == '--help' ]]; then
+	echo "Usage: $0 searchterm"
+	exit 1
+fi
+
+for FILE in *.odt; do
+	[ -e "$FILE" ] || continue   # protect against glob not matching
+	unzip -ca "$FILE" content.xml | tidy -q -xml 2> /dev/null | grep -ql "$@"
+	if [ $? -eq 0 ]; then
+		echo "$FILE"
+	fi
+done
+
+for FILE in *.doc ; do
+	[ -e "$FILE" ] || continue   # protect against glob not matching
+	catdoc "$FILE" | grep -ql "$@"
+	if [ $? -eq 0 ]; then
+		echo "$FILE"
+	fi
+done
