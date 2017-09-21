@@ -20,6 +20,8 @@ error() {
   exit 1
 }
 
+shopt -s nullglob  # don't complain about possibly missing *.CR2 files
+
 # sanity checks
 which exiv2 >/dev/null || error "exiv2 tool is not available, aborting."
 
