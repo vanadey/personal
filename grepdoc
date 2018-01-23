@@ -1,12 +1,20 @@
 #!/bin/bash
+ERROR=
+for PROG in unzip tidy catdoc; do
+	which $PROG > /dev/null || { echo "$PROG is not installed, aborting."; ERROR=1; }
+done
+[ -z "$ERROR" ] || exit 1
+
 if [[ $# == 0 || $1 == '-h' || $1 == '--help' ]]; then
 	echo "Usage: $0 searchterm"
 	exit 1
 fi
 
 for FILE in *.odt; do
+	[ -z "$DEBUG" ] || echo "[AWSdebug] processing file \"$FILE\""
 	[ -e "$FILE" ] || continue   # protect against glob not matching
-	unzip -ca "$FILE" content.xml | tidy -q -xml 2> /dev/null | grep -ql "$@"
+	[ -z "$DEBUG" ] || echo "[AWSdebug] grepping in file \"$FILE\":content.xml"
+	unzip -ca "$FILE" content.xml | tidy -q -xml -raw 2> /dev/null | grep -ql "$@"
 	if [ $? -eq 0 ]; then
 		echo "$FILE"
 	fi
