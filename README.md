@@ -20,4 +20,11 @@ Unpack a ZIP archive created on MS Windows and containing Polish characters in f
 ## unzip_win.py
 Unpack a (non-standard-compliant) ZIP archive created on MS Windows and containing Windows path separators (\). (ZIP file format specification mandates using slashes / regardless of OS, but some Windows archivers disobey this.)
 
+## grepdoc
+Search ODT and DOC files in the current directory for the specified term (`grep -ql {}`)
+
+## bpmcalc.sh
+Analyse MP3 files in the specified directories and compute their tempo (BPM).
+Useful for composing playlists for training running with specific cadence.
+
 More to come...
