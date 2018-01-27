@@ -23,8 +23,18 @@ Unpack a (non-standard-compliant) ZIP archive created on MS Windows and containi
 ## grepdoc
 Search ODT and DOC files in the current directory for the specified term (`grep -ql {}`)
 
-## bpmcalc.sh
-Analyse MP3 files in the specified directories and compute their tempo (BPM).
-Useful for composing playlists for training running with specific cadence.
+## running
+Utilities related to running and presenting run tracks
+
+> ### bpmcalc.sh
+> Analyse MP3 files in the specified directories and compute their tempo (BPM).
+> Useful for composing playlists for training running with specific cadence.
+>
+> ### gpxedit.py
+> Modify GPX tracks: alter exercise date&time, scale track duration.
+> 
+> ### gpxplot.py
+> Plot multiple GPX data files on single canvas, visualising overall track distribution.
+> Slightly modified code by Andy Kee (http://andykee.com/visualizing-strava-tracks-with-python.html).
 
 More to come...
