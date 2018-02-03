@@ -2,7 +2,6 @@
 import sys
 import gpxpy
 import datetime
-#from datetime import datetime
 import argparse
 
 
@@ -91,7 +90,7 @@ debug_msg("Original duration = " + str(duration_original))
 
 if options.starttime and not options.duration and not options.endtime :
    # time-shift only
-   start_time = datetime.strptime(options.starttime,TIMEFORMAT)
+   start_time = datetime.datetime.strptime(options.starttime,TIMEFORMAT)
    debug_msg("Computed finish time = " + str(start_time + duration_original))
    time_scaling_factor = 1
 elif not options.starttime and not options.duration and options.endtime :
