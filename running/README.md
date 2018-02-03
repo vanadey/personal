@@ -23,3 +23,8 @@ Uses `gpx-py` to perform operations on recorded GPX tracks:
 
 I realised that `gpx-py` does not support GPX extensions and thus loses heart rate data. That is why I abandoned this 
 approach and started working on **GPX Transformation**.
+
+# gpxplot
+
+Heavily borrowing from [Andy Kee's article](http://andykee.com/visualizing-strava-tracks-with-python.html). Plots a collection 
+of GPX tracks on common canvas, to visualise popularity of individual routes.
