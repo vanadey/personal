@@ -1,12 +1,14 @@
 #/bin/bash
 
 usage() {
-    echo "Usage:"
-    echo "$0 <archives>..."
+    printf "$0 : Unpack ZIP archive with Windows-encoded Polish characters in file/dir names\n"
+    printf "Usage:\n"
+    printf "$0 <archives>...\n"
     exit 1
 }
 
 if [[ $# < 0 ]]; then usage; fi
+if [[ $# == 1 ]] && [[ "$1" == "--help" || "$1" == "-h" ]]; then usage; fi
 
 TMP_DIR=$(mktemp -d)
 
