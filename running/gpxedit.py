@@ -54,8 +54,9 @@ def debug_msg(msg) :
 
 
 def get_time_bounds(gpx) :
-   start_time = datetime.datetime(year=2099, month=1, day=1, hour=0, minute=0, second=0)
-   finish_time = datetime.datetime(year=2000, month=1, day=1, hour=0, minute=0, second=0)
+   tz = datetime.timezone(datetime.timedelta(0))
+   start_time = datetime.datetime(year=2099, month=1, day=1, hour=0, minute=0, second=0, tzinfo=tz)
+   finish_time = datetime.datetime(year=2000, month=1, day=1, hour=0, minute=0, second=0, tzinfo = tz)
    
    for track in gpx.tracks:
       for segment in track.segments:
@@ -95,21 +96,21 @@ if options.starttime and not options.duration and not options.endtime :
    time_scaling_factor = 1
 elif not options.starttime and not options.duration and options.endtime :
    # time-shift only by finish time
-   finish_time = datetime.strptime(options.endtime,TIMEFORMAT)
+   finish_time = datetime.datetime.strptime(options.endtime,TIMEFORMAT)
    start_time = finish_time - duration_original
    debug_msg("Computed start time = " + str(start_time))
    time_scaling_factor = 1
 elif options.starttime and options.duration and not options.endtime :
    # time-shift by start time & time scaling
-   start_time = datetime.strptime(options.starttime,TIMEFORMAT)
-   duration = datetime.strptime(options.duration,"%H:%M:%S") - datetime.strptime("00:00:00","%H:%M:%S")
+   start_time = datetime.datetime.strptime(options.starttime,TIMEFORMAT)
+   duration = datetime.datetime.strptime(options.duration,"%H:%M:%S") - datetime.datetime.strptime("00:00:00","%H:%M:%S")
    debug_msg("Desired duration = " + str(duration))
    time_scaling_factor = duration / duration_original
    debug_msg("Computed finish time = " + str(start_time + duration_original * time_scaling_factor))
 elif options.starttime and not options.duration and options.endtime :
    # time-shift by start time & time scaling to fit into explicit period
-   start_time = datetime.strptime(options.starttime,TIMEFORMAT)
-   finish_time = datetime.strptime(options.endtime,TIMEFORMAT)
+   start_time = datetime.datetime.strptime(options.starttime,TIMEFORMAT)
+   finish_time = datetime.datetime.strptime(options.endtime,TIMEFORMAT)
    duration = finish_time - start_time
    debug_msg("Desired duration = " + str(duration))
    time_scaling_factor = duration / duration_original
