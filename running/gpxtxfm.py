@@ -76,7 +76,61 @@ def get_time_bounds(gpx):
 
 options = parse_args()
 
-refpoints = []
+if options.reference :
+   # FILTERING MODE; reference file is used as list of track points to be left in the input file
+
+   refpoints = []
+   
+   with open(options.reffile) as reffile :
+      is_in_trkpt = False
+      for line in reffile:
+         _line = line.strip()
+         if _line.startswith("<trkpt ") :
+            is_in_trkpt = True
+         elif _line.endswith("</trkpt>") :
+            is_in_trkpt = False
+         elif is_in_trkpt and _line.startswith("<time>") and _line.endswith("</time>"):
+            refpoints.append(_line)
+   
+   if not refpoints :
+      aws_utils.error("Reference GPX file contains no track points",True)
+      
+   print(str(refpoints))
+   refpoints.reverse()
+   
+   # Ye Olde State Machine
+   is_in_trkpt = False
+   trkpt_body = ""
+   next_refpoint = refpoints.pop()
+   is_valid_refpoint = False
+   
+   with open(options.outfile,"w") as outfile :
+      with open(options.infile) as infile :
+         for in_line in infile :
+            _in_line = in_line.strip()
+            if is_in_trkpt :
+               if _in_line.startswith("<time>") and _in_line.endswith("</time>") :
+                  if _in_line == next_refpoint :
+                     is_valid_refpoint = True
+            elif _in_line.startswith("<trkpt ") :
+               is_in_trkpt = True
+               
+            if is_in_trkpt :
+               trkpt_body += in_line
+   
+               if _in_line.startswith("</trkpt>") :
+                  if is_valid_refpoint :
+                     outfile.write(trkpt_body)
+                     is_valid_refpoint = False
+                     next_refpoint = refpoints.pop() if refpoints else "INVALID_TIMESTAMP"
+                  is_in_trkpt = False
+                  trkpt_body = ""
+   
+            else :
+               outfile.write(in_line)
+
+# FOR FUTURE REFERENCE
+#
 # rgx_time = re.compile(r"\s*<time>([^<]+)</time>\s*")
 # with open(options.reffile) as reffile :
 #    for line in reffile :
@@ -85,51 +139,3 @@ refpoints = []
 #          debug_msg(_time_str.group(1))
 #          _time = datetime.datetime.strptime(_time_str.group(1),TIMEFORMAT)
 #          refpoints.append(_time)
-
-with open(options.reffile) as reffile :
-   is_in_trkpt = False
-   for line in reffile:
-      _line = line.strip()
-      if _line.startswith("<trkpt ") :
-         is_in_trkpt = True
-      elif _line.endswith("</trkpt>") :
-         is_in_trkpt = False
-      elif is_in_trkpt and _line.startswith("<time>") and _line.endswith("</time>"):
-         refpoints.append(_line)
-
-if not refpoints :
-   aws_utils.error("Reference GPX file contains no track points",True)
-   
-print(str(refpoints))
-refpoints.reverse()
-
-is_in_trkpt = False
-trkpt_body = ""
-next_refpoint = refpoints.pop()
-is_valid_refpoint = False
-
-with open(options.outfile,"w") as outfile :
-   with open(options.infile) as infile :
-      for in_line in infile :
-         _in_line = in_line.strip()
-         #aws_utils.debug_msg("..... " + _in_line + " .....")
-         if is_in_trkpt :
-            if _in_line.startswith("<time>") and _in_line.endswith("</time>") :
-               if _in_line == next_refpoint :
-                  is_valid_refpoint = True
-         elif _in_line.startswith("<trkpt ") :
-            is_in_trkpt = True
-            
-         if is_in_trkpt :
-            trkpt_body += in_line
-
-            if _in_line.startswith("</trkpt>") :
-               if is_valid_refpoint :
-                  outfile.write(trkpt_body)
-                  is_valid_refpoint = False
-                  next_refpoint = refpoints.pop() if refpoints else "INVALID_TIMESTAMP"
-               is_in_trkpt = False
-               trkpt_body = ""
-
-         else :
-            outfile.write(in_line)
