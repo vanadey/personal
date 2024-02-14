@@ -1,6 +1,6 @@
 #!/bin/bash
 ERROR=
-for PROG in unzip tidy catdoc; do
+for PROG in unzip tidy catdoc pandoc; do
 	which $PROG > /dev/null || { echo "$PROG is not installed, aborting."; ERROR=1; }
 done
 [ -z "$ERROR" ] || exit 1
@@ -27,3 +27,13 @@ for FILE in *.doc ; do
 		echo "$FILE"
 	fi
 done
+
+for FILE in *.docx ; do
+	[ -e "$FILE" ] || continue   # protect against glob not matching
+	pandoc --to plain "$FILE" | grep -ql "$@"
+	if [ $? -eq 0 ]; then
+		echo "$FILE"
+	fi
+done
+
+
