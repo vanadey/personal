@@ -125,7 +125,10 @@ def parse_args():
     parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--infile", required=True, action="store", dest="infile", metavar="FREEPLANE_FILE", help="input FreePlane (*.mm) XML file")
     parser.add_argument("--innode", action="store", dest="innode", metavar="FREEPLANE_NODE_ID", help="ID of node to export from FreePlane mind map")
-    parser.add_argument("--outfile", required=True, action="store", dest="outfile", metavar="LOGSEQ_FILE", help="output Logseq (*.md) Markdown file")
+    parser.add_argument("--outdir", required=True, action="store", dest="outdir", metavar="LOGSEQ_DIR", help="location of Logseq graph " + 
+                        "(there should be subdirectories like assets/, journals/, pages/ etc. inside")
+    parser.add_argument("--outfile", required=True, action="store", dest="outfile", metavar="LOGSEQ_FILE",
+                        help="name and possibly path to output Logseq (*.md) Markdown file INSIDE LOGSEQ_DIR, e.g. pages/mypage.md")
 
     #parser.add_argument("--namespace", action="store", dest="namespace", metavar="NAMESPACE", help=f"Logseq namespace to create the pages hierarchy in")
     break_map = parser.add_argument_group("subpages", "control breaking mindmap into subpages")
@@ -148,6 +151,12 @@ def parse_args():
     if options.outfile.lower().endswith(".md"):
         options.outfile = options.outfile[:-3]
 
+    if not os.path.isdir(options.outdir):
+        error(f"LOGSEQ_DIR {options.outdir} does not exist", True)
+    for subdir in ["assets", "journals", "pages"]:
+        if not os.path.isdir(os.path.join(options.outdir, subdir)):
+            error(f"LOGSEQ_DIR {options.outdir} does not seem to contain a Logseq graph...", True)
+
     return options
 
 
@@ -161,19 +170,20 @@ def is_image(uri):
 
 
 def migrate_img(img_uri, imgdir, srcdir):
+    imgdir_ = os.path.join(options.outdir, imgdir)
     if is_image(img_uri):
-        if not os.path.isdir(imgdir):
-            os.mkdir(imgdir)
+        if not os.path.isdir(imgdir_):
+            os.makedirs(imgdir_)
         img_filename = os.path.basename(img_uri)
         src_img = os.path.join(srcdir, img_uri)
         if os.path.exists(src_img):
             try:
-                shutil.copy2(src_img, imgdir)
+                shutil.copy2(src_img, imgdir_)
             except:
-                sys.stderr.write(f"Cannot copy image file {src_img} to directory {imgdir}\n")
+                sys.stderr.write(f"Cannot copy image file {src_img} to directory {imgdir_}\n")
     else:
         sys.stderr.write(f"File {img_uri} is not an image, skipping\n")
-    return os.path.join(imgdir, img_filename)
+    return os.path.join(os.path.dirname(imgdir), img_filename)
 
 
 
@@ -296,6 +306,7 @@ def get_md(node: ET.Element, indent, imgdir, srcdir) -> str:
                 img_uri = img_node.get("src")
                 vprint(f"img uri recognized in HTML! {img_uri}")
                 new_uri = migrate_img(img_uri, imgdir, srcdir)
+                new_uri = os.path.join(options.relimgpath, new_uri)
                 img_node.set("src", new_uri)
             # now extract the actual contents
             # this way we will extract already-updated image URIs
@@ -324,6 +335,7 @@ def get_md(node: ET.Element, indent, imgdir, srcdir) -> str:
         vprint(f"hook uri recognized! {hook_uri}")
         if hook_uri != None:  # <hook> nodes may also specify styles etc.
             new_uri = migrate_img(hook_uri, imgdir, srcdir)
+            new_uri = os.path.join(options.relimgpath, new_uri)
             node_text = f"![{node_text}]({new_uri})"
 
     return f"{HEADER_MARK}{ICON}{FORMAT_MARK}{node_text}{FORMAT_MARK}"
@@ -395,7 +407,7 @@ def process_node(node, indent, outdir, outfile, imgdir, srcdir, namespace, preve
 
 
 def process_map(root, outdir, outfile, imgdir, srcdir, namespace):
-    vprint("[debug] process_map() called")
+    vprint(f"[debug] process_map() called, {imgdir=}")
 
     outfile_actual = outfile + ".md"
     if namespace:
@@ -409,6 +421,8 @@ def process_map(root, outdir, outfile, imgdir, srcdir, namespace):
 
     output = process_node(root, 0, outdir, outfile, imgdir, srcdir, namespace)
 
+    if not os.path.isdir(outdir):
+            os.makedirs(outdir)
     with open(os.path.join(outdir, outfile_actual), 'w') as of:
         vprint(f"Writing to file {outdir+'/'+outfile_actual}")
         of.write(output)
@@ -447,11 +461,25 @@ if __name__ == '__main__':
     srcdir = os.path.dirname(os.path.realpath(options.infile))
 
     # output locations
-    options.outfile = os.path.realpath(options.outfile)
-    outdir = os.path.dirname(options.outfile)
-    outfile = os.path.basename(options.outfile)
+    outpath = os.path.realpath(os.path.join(options.outdir, options.outfile))
+    outdir = os.path.dirname(outpath)
+    outfile = os.path.basename(outpath)
 
     # subdirectory to store possible images
     imgdir = options.outfile  # this will be different from actual outfile for submaps
+
+    outlevels = len(options.outfile.split('/')) - 1
+    options.relimgpath = os.path.join('/'.join([".."] * outlevels), "assets")
+    assets_link = os.path.join(options.outdir, "assets", outfile)
+
+    vprint(f"{options.relimgpath=}")
+    try:
+        #if os.path.isfile(assets_link) or os.scandir(assets_link).is_link:
+        os.remove(assets_link)
+    except:
+        pass  # we don't care if the file/link does not exist
+    assets_link_target = os.path.join("..", os.path.dirname(options.outfile), outfile)
+    os.symlink(assets_link_target, assets_link)
+    vprint(f"Created symlink {assets_link_target} -> {assets_link}")
 
     process_map(mm_node, outdir, outfile, imgdir, srcdir, namespace=None)
